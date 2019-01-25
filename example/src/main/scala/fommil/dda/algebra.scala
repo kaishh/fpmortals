@@ -12,7 +12,7 @@ trait Drone[F[_]] {
   def getBacklog: F[Int]
   def getAgents: F[Int]
 }
-object Drone extends DroneBoilerplate
+object Drone
 
 @deriving(Order, Show)
 final case class MachineNode(id: String)
@@ -24,4 +24,4 @@ trait Machines[F[_]] {
   def start(node: MachineNode): F[Unit]
   def stop(node: MachineNode): F[Unit]
 }
-object Machines extends MachinesBoilerlate
+object Machine

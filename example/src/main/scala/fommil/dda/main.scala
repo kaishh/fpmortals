@@ -29,32 +29,13 @@ trait ErrorTransformer
 object Main extends SafeApp {
 
   def run(args: List[String]): IO[Void, ExitStatus] = {
-    if (args.contains("--machines")) auth("machines")
-    else agentsDI(BearerToken("<invalid>", Epoch(0)))
+    agentsDI(BearerToken("<invalid>", Epoch(0)))
   }.attempt[Void].map {
     case \/-(_) => ExitStatus.ExitNow(0)
     case -\/(err) =>
       java.lang.System.err.println(err)
       ExitStatus.ExitNow(1)
   }
-
-  // performs the OAuth 2.0 dance to obtain refresh tokens
-  def auth(name: String): Task[Unit] = {
-    type HT[f[_], a] = EitherT[f, JsonClient.Error, a]
-    type H[a]        = HT[Task, a]
-
-    for {
-      config    <- readConfig[ServerConfig](name + ".server").liftM[HT]
-      ui        <- BlazeUserInteraction().liftM[HT]
-      auth      = new AuthModule(config)(ui)
-      codetoken <- auth.authenticate.liftM[HT]
-      clock     = LocalClock.liftM[Task, HT](new LocalClockTask)
-      client    <- BlazeJsonClient[H].liftM[HT]
-      access    = new AccessModule(config)(client, clock)
-      token     <- access.access(codetoken)
-      _         <- putStrLn(z"got token: ${token._1}").toTask.liftM[HT]
-    } yield ()
-  }.run.swallowError
 
   type JErr = JsonClient.Error :+: Throwable :+: CNil
   type JIO[A] = IO[JErr, A]

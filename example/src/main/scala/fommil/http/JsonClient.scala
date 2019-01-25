@@ -30,7 +30,7 @@ trait JsonClient[F[_]] {
   ): F[A]
 
 }
-object JsonClient extends JsonClientBoilerplate {
+object JsonClient {
   sealed abstract class Error
   final case class ServerError(status: Int)       extends Error
   final case class DecodingError(message: String) extends Error
